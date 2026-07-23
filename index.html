@@ -879,11 +879,15 @@
     <div class="conteudo-aba-prontuario ativa" id="aba-dados-pessoais">
       <div class="grid-2">
         <div><label>Nome</label><input id="prontuario-view-nome" disabled></div>
-        <div><label>Telefone</label><input id="prontuario-view-telefone" disabled></div>
+        <div><label>Telefone</label><input id="prontuario-view-telefone" disabled maxlength="15" oninput="aplicarMascaraTelefone(this)"></div>
       </div>
       <div class="grid-2">
-        <div><label>CPF</label><input id="prontuario-view-cpf" disabled></div>
-        <div><label>Data de Nascimento</label><input id="prontuario-view-nascimento" disabled></div>
+        <div>
+          <label>CPF</label>
+          <input id="prontuario-view-cpf" disabled maxlength="14" oninput="aplicarMascaraCpf(this)" onblur="validarCpfProntuario()">
+          <small id="prontuario-cpf-aviso" style="display:none; color:var(--danger);">CPF inválido.</small>
+        </div>
+        <div><label>Data de Nascimento</label><input id="prontuario-view-nascimento" disabled maxlength="10" placeholder="dd/mm/aaaa" oninput="aplicarMascaraData(this)"></div>
       </div>
       <div class="grid-2">
         <div><label>E-mail</label><input id="prontuario-view-email" disabled></div>
@@ -1154,11 +1158,11 @@ let mesExibidoMiniCalendario = new Date(dataSelecionadaAgenda.getFullYear(), dat
 let profissionaisSelecionadosIds = [];
 
 const PERMISSOES = {
-  master:              { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:true, configuracoes:true, financeiroEditarExcluir:true, gerenciarUsuarios:true, gerenciarCadastros:true },
-  administrador:       { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:true, configuracoes:true, financeiroEditarExcluir:false, gerenciarUsuarios:true, gerenciarCadastros:true },
-  comercial:           { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false },
-  secretaria:          { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false },
-  profissional_saude:  { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:false, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false }
+  master:              { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:true, configuracoes:true, financeiroEditar:true, financeiroExcluir:true, gerenciarUsuarios:true, gerenciarCadastros:true },
+  administrador:       { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:true, configuracoes:true, financeiroEditar:true, financeiroExcluir:false, gerenciarUsuarios:true, gerenciarCadastros:true },
+  comercial:           { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:false, configuracoes:false, financeiroEditar:false, financeiroExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false },
+  secretaria:          { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:false, configuracoes:false, financeiroEditar:false, financeiroExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false },
+  profissional_saude:  { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:false, financeiroCompleto:false, configuracoes:false, financeiroEditar:false, financeiroExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false }
 };
 
 const NOMES_NIVEL = {
@@ -1858,6 +1862,67 @@ async function receberParcelaOrcamentoNoProntuario(orcamentoId, numeroParcela){
   }
 }
 
+/* ===== máscaras de preenchimento ===== */
+function aplicarMascaraTelefone(input){
+  let v = input.value.replace(/\D/g, '').slice(0, 11);
+  if(v.length > 10){
+    v = v.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+  } else if(v.length > 5){
+    v = v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+  } else if(v.length > 2){
+    v = v.replace(/(\d{2})(\d{0,5})/, '($1) $2');
+  } else if(v.length > 0){
+    v = v.replace(/(\d{0,2})/, '($1');
+  }
+  input.value = v.trim().replace(/-$/, '').replace(/\)\s*$/, ')');
+}
+
+function aplicarMascaraCpf(input){
+  let v = input.value.replace(/\D/g, '').slice(0, 11);
+  v = v.replace(/(\d{3})(\d)/, '$1.$2');
+  v = v.replace(/(\d{3})(\d)/, '$1.$2');
+  v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  input.value = v;
+}
+
+function aplicarMascaraData(input){
+  let v = input.value.replace(/\D/g, '').slice(0, 8);
+  v = v.replace(/(\d{2})(\d)/, '$1/$2');
+  v = v.replace(/(\d{2})(\d)/, '$1/$2');
+  input.value = v;
+}
+
+/* Validador de CPF — algoritmo padrão dos dois dígitos verificadores */
+function validarCpf(cpf){
+  cpf = (cpf || '').replace(/\D/g, '');
+  if(cpf.length !== 11) return false;
+  if(/^(\d)\1{10}$/.test(cpf)) return false; // rejeita sequências tipo 111.111.111-11
+
+  let soma = 0;
+  for(let i = 0; i < 9; i++) soma += parseInt(cpf[i]) * (10 - i);
+  let resto = (soma * 10) % 11;
+  if(resto === 10) resto = 0;
+  if(resto !== parseInt(cpf[9])) return false;
+
+  soma = 0;
+  for(let i = 0; i < 10; i++) soma += parseInt(cpf[i]) * (11 - i);
+  resto = (soma * 10) % 11;
+  if(resto === 10) resto = 0;
+  if(resto !== parseInt(cpf[10])) return false;
+
+  return true;
+}
+
+function validarCpfProntuario(){
+  const input = document.getElementById('prontuario-view-cpf');
+  const aviso = document.getElementById('prontuario-cpf-aviso');
+  if(!input.value){ aviso.style.display = 'none'; return true; }
+  const valido = validarCpf(input.value);
+  aviso.style.display = valido ? 'none' : 'block';
+  input.style.borderColor = valido ? '' : 'var(--danger)';
+  return valido;
+}
+
 /* ===== edição completa do prontuário (dados pessoais + endereço) ===== */
 function ativarEdicaoProntuario(){
   document.querySelectorAll('#aba-dados-pessoais input').forEach(el => el.disabled = false);
@@ -1887,6 +1952,7 @@ async function buscarEnderecoPorCep(){
 
 async function salvarEdicaoProntuario(){
   if(!pacienteProntuarioAtualId) return;
+  if(!validarCpfProntuario()){ mostrarToast('CPF inválido — confira o número digitado.'); return; }
 
   try{
     await db.collection('pacientes').doc(pacienteProntuarioAtualId).update({
@@ -3279,12 +3345,12 @@ async function removerProfissional(id){
 /* =========================================================
    FINANCEIRO
 ========================================================= */
-/* ===== edição/exclusão de pagamentos efetuados — EXCLUSIVO do Master ===== */
+/* ===== edição de pagamentos efetuados: Master e Administrador. Exclusão: EXCLUSIVA do Master ===== */
 let indicePagamentoEmEdicao = null;
 
 function abrirModalEditarPagamento(id){
-  if(!usuarioAtual || !PERMISSOES[usuarioAtual.nivel].financeiroEditarExcluir){
-    mostrarToast('Apenas o usuário Master pode editar pagamentos já efetuados.');
+  if(!usuarioAtual || !PERMISSOES[usuarioAtual.nivel].financeiroEditar){
+    mostrarToast('Você não tem permissão para editar pagamentos já efetuados.');
     return;
   }
   indicePagamentoEmEdicao = id;
@@ -3297,8 +3363,8 @@ function abrirModalEditarPagamento(id){
 }
 
 async function salvarEdicaoPagamento(){
-  if(!usuarioAtual || !PERMISSOES[usuarioAtual.nivel].financeiroEditarExcluir){
-    mostrarToast('Apenas o usuário Master pode editar pagamentos já efetuados.');
+  if(!usuarioAtual || !PERMISSOES[usuarioAtual.nivel].financeiroEditar){
+    mostrarToast('Você não tem permissão para editar pagamentos já efetuados.');
     return;
   }
   try{
@@ -3308,7 +3374,7 @@ async function salvarEdicaoPagamento(){
       valorRecebido: parseFloat(document.getElementById('editar-pgto-valor-recebido').value) || 0,
       status: document.getElementById('editar-pgto-status').value
     });
-    mostrarToast('Pagamento editado pelo Master.');
+    mostrarToast('Pagamento editado com sucesso.');
     fecharModal('modal-editar-pagamento');
   } catch(erro){
     console.error('Erro ao editar pagamento:', erro);
@@ -3317,7 +3383,7 @@ async function salvarEdicaoPagamento(){
 }
 
 async function excluirPagamento(id){
-  if(!usuarioAtual || !PERMISSOES[usuarioAtual.nivel].financeiroEditarExcluir){
+  if(!usuarioAtual || !PERMISSOES[usuarioAtual.nivel].financeiroExcluir){
     mostrarToast('Apenas o usuário Master pode excluir pagamentos já efetuados.');
     return;
   }
@@ -3429,7 +3495,8 @@ function parseDataBRParaDate(dataBR){
 function renderizarFinanceiro(){
   const tabela = document.getElementById('tabela-financeiro');
   const financeiroCompleto = usuarioAtual ? PERMISSOES[usuarioAtual.nivel].financeiroCompleto : true;
-  const podeEditarExcluirPago = usuarioAtual ? PERMISSOES[usuarioAtual.nivel].financeiroEditarExcluir : false;
+  const podeEditarPago = usuarioAtual ? PERMISSOES[usuarioAtual.nivel].financeiroEditar : false;
+  const podeExcluirPago = usuarioAtual ? PERMISSOES[usuarioAtual.nivel].financeiroExcluir : false;
 
   // define período padrão (mês atual) na primeira renderização
   const inputInicio = document.getElementById('financeiro-filtro-data-inicio');
@@ -3498,10 +3565,11 @@ function renderizarFinanceiro(){
         ${f.status !== 'pago' && f.tipo === 'receita' ? `<button class="btn-secundario" onclick="abrirModalReceberPagamento('${f.id}')">Receber Pagamento</button>` : ''}
       </td>
       <td>
-        ${houvePagamento && podeEditarExcluirPago ? `
-          <button class="btn-secundario" onclick="abrirModalEditarPagamento('${f.id}')">Editar</button>
-          <button class="btn-secundario" onclick="excluirPagamento('${f.id}')">Excluir</button>
-        ` : (houvePagamento ? '<span style="color:var(--text-1); font-size:11px;">🔒 só Master</span>' : '')}
+        ${houvePagamento ? `
+          ${podeEditarPago ? `<button class="btn-secundario" onclick="abrirModalEditarPagamento('${f.id}')">Editar</button>` : ''}
+          ${podeExcluirPago ? `<button class="btn-secundario" onclick="excluirPagamento('${f.id}')">Excluir</button>` : ''}
+          ${!podeEditarPago && !podeExcluirPago ? '<span style="color:var(--text-1); font-size:11px;">🔒 sem permissão</span>' : ''}
+        ` : ''}
       </td>
     </tr>`;
   }).join('');
