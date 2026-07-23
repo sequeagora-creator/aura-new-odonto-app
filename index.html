@@ -326,9 +326,21 @@
           <div><h2>Dashboard</h2><p>Visão geral da clínica hoje</p></div>
         </div>
         <div class="grid-3">
-          <div class="painel"><label>Consultas hoje</label><h2 id="kpi-consultas-hoje">3</h2></div>
-          <div class="painel"><label>Orçamentos pendentes</label><h2 id="kpi-orcamentos-pendentes">2</h2></div>
-          <div class="painel"><label>Receita do mês</label><h2 id="kpi-receita-mes">R$ 8.450,00</h2></div>
+          <div class="painel"><label>Consultas hoje</label><h2 id="kpi-consultas-hoje">0</h2></div>
+          <div class="painel"><label>Orçamentos pendentes</label><h2 id="kpi-orcamentos-pendentes">0</h2></div>
+          <div class="painel"><label>Receita do Mês (recebida)</label><h2 id="kpi-receita-mes">R$ 0,00</h2></div>
+        </div>
+
+        <div class="cabecalho-secao" style="margin-top:22px;">
+          <div><h2 style="font-size:16px;">Visão Geral do Mês Atual</h2><p>Resumo consolidado do mês corrente</p></div>
+        </div>
+        <div class="grid-3">
+          <div class="painel"><label>Receita Total a Receber (mês)</label><h2 id="kpi-receita-a-receber">R$ 0,00</h2></div>
+          <div class="painel"><label>Saídas do Mês</label><h2 id="kpi-saidas-mes" style="color:var(--danger);">R$ 0,00</h2></div>
+          <div class="painel"><label>Saldo do Mês</label><h2 id="kpi-saldo-mes">R$ 0,00</h2></div>
+          <div class="painel"><label>Consultas no Mês</label><h2 id="kpi-consultas-mes">0</h2></div>
+          <div class="painel"><label>Novos Pacientes no Mês</label><h2 id="kpi-novos-pacientes-mes">0</h2></div>
+          <div class="painel"><label>Orçamentos Fechados no Mês</label><h2 id="kpi-orcamentos-fechados-mes">0</h2></div>
         </div>
       </div>
 
@@ -371,6 +383,7 @@
                 <span id="agenda-data-completa" style="font-weight:600; font-size:13px; color:var(--text-0);">15 · Julho - 2026</span>
               </div>
               <button class="nav-dia" onclick="mudarDiaAgenda(1)">&#8250;</button>
+              <span title="Imprimir agenda completa do dia" onclick="imprimirAgendaDiaCompleta()" style="cursor:pointer; font-size:16px; margin-left:10px;">🖨️</span>
             </div>
 
             <div class="colunas-agenda" id="colunas-agenda"></div>
@@ -432,13 +445,39 @@
       <div class="secao" id="secao-financeiro">
         <div class="cabecalho-secao">
           <div><h2>Financeiro</h2><p id="financeiro-subtitulo">Fluxo de caixa da clínica</p></div>
-          <button class="btn-primario" id="btn-nova-transacao" onclick="mostrarToast('Modal de transação financeira — próxima etapa.')">+ Nova Transação</button>
+          <button class="btn-primario" id="btn-nova-transacao" onclick="abrirModalNovaTransacao()">+ Nova Transação</button>
         </div>
 
         <div class="painel" id="aviso-financeiro-restrito" style="display:none;">
           <p style="color:var(--text-1); font-size:13px; margin:0;">
             🔒 Seu nível de acesso permite apenas <b>registrar recebimentos</b>. Contas a pagar, despesas e relatórios completos são visíveis somente para o Administrador.
           </p>
+        </div>
+
+        <div class="painel" id="painel-resumo-financeiro">
+          <div class="grid-4" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+            <div>
+              <label style="font-size:12px;">De</label><br>
+              <input type="date" id="financeiro-filtro-data-inicio" onchange="renderizarFinanceiro()">
+            </div>
+            <div>
+              <label style="font-size:12px;">Até</label><br>
+              <input type="date" id="financeiro-filtro-data-fim" onchange="renderizarFinanceiro()">
+            </div>
+            <div>
+              <label style="font-size:12px;">Exibir</label><br>
+              <select id="financeiro-filtro-tipo" onchange="renderizarFinanceiro()">
+                <option value="ambos">Entradas e Saídas (DRE)</option>
+                <option value="receita">Somente Entradas</option>
+                <option value="despesa">Somente Saídas</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="painel"><label>Total de Entradas</label><h2 id="resumo-total-entradas" style="color:var(--success, #1a9c5c);">R$ 0,00</h2></div>
+            <div class="painel"><label>Total de Saídas</label><h2 id="resumo-total-saidas" style="color:var(--danger);">R$ 0,00</h2></div>
+            <div class="painel"><label>Saldo do Período</label><h2 id="resumo-saldo-periodo">R$ 0,00</h2></div>
+          </div>
         </div>
 
         <div class="painel">
@@ -859,6 +898,24 @@
         <div><label>Origem do Lead</label><input id="prontuario-view-origem" disabled></div>
       </div>
       <div><label>Etapa do Funil</label><input id="prontuario-view-etapa" disabled></div>
+
+      <h4 style="margin:18px 0 8px;">Endereço</h4>
+      <div class="grid-2">
+        <div>
+          <label>CEP</label>
+          <input id="prontuario-view-cep" disabled onblur="buscarEnderecoPorCep()" placeholder="00000-000">
+        </div>
+        <div><label>Endereço (Rua/Av.)</label><input id="prontuario-view-endereco" disabled></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Número</label><input id="prontuario-view-numero" disabled></div>
+        <div><label>Complemento</label><input id="prontuario-view-complemento" disabled></div>
+      </div>
+      <div class="grid-2">
+        <div><label>Bairro</label><input id="prontuario-view-bairro" disabled></div>
+        <div><label>Cidade</label><input id="prontuario-view-cidade" disabled></div>
+      </div>
+      <div><label>Estado (UF)</label><input id="prontuario-view-estado" disabled maxlength="2" style="max-width:80px;"></div>
     </div>
 
     <!-- ABA 2: Orçamentos -->
@@ -882,6 +939,57 @@
 
     <div class="modal-acoes">
       <button class="btn-secundario" onclick="fecharModal('modal-prontuario-paciente')">Fechar</button>
+      <button class="btn-secundario" id="btn-editar-prontuario" onclick="ativarEdicaoProntuario()">Editar</button>
+      <button class="btn-primario" id="btn-salvar-prontuario" style="display:none;" onclick="salvarEdicaoProntuario()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-fundo" id="modal-nova-transacao">
+  <div class="modal" style="width:460px;">
+    <h3>Nova Transação</h3>
+
+    <label>Tipo</label>
+    <select id="nt-tipo" onchange="alternarTipoNovaTransacao()">
+      <option value="receita">Entrada</option>
+      <option value="despesa">Saída</option>
+    </select>
+
+    <!-- Campos exclusivos de ENTRADA -->
+    <div id="nt-bloco-entrada">
+      <label>Paciente</label>
+      <select id="nt-paciente-select" onchange="alternarPacienteNovoNaTransacao()">
+        <option value="">— Selecionar paciente cadastrado —</option>
+        <option value="__novo__">+ Cadastrar paciente na hora</option>
+      </select>
+      <div id="nt-bloco-paciente-novo" style="display:none; margin-top:8px;">
+        <label>Nome do novo paciente</label>
+        <input id="nt-paciente-novo-nome" placeholder="Nome completo">
+        <label>Telefone</label>
+        <input id="nt-paciente-novo-telefone" placeholder="(00) 00000-0000">
+      </div>
+    </div>
+
+    <!-- Campo exclusivo de SAÍDA -->
+    <div id="nt-bloco-saida" style="display:none;">
+      <label>Destino / Fornecedor</label>
+      <input id="nt-destino-fornecedor" placeholder="Ex: Fornecedor de materiais, Aluguel, etc.">
+    </div>
+
+    <label>Categoria / Descrição</label>
+    <input id="nt-categoria" placeholder="Ex: Recebimento avulso, Conta de luz...">
+
+    <div class="grid-2">
+      <div><label>Valor</label><input type="number" id="nt-valor" placeholder="0,00"></div>
+      <div><label>Data</label><input type="date" id="nt-data"></div>
+    </div>
+
+    <label>Observação</label>
+    <textarea id="nt-observacao" rows="2" placeholder="Observações (opcional)"></textarea>
+
+    <div class="modal-acoes">
+      <button class="btn-secundario" onclick="fecharModal('modal-nova-transacao')">Cancelar</button>
+      <button class="btn-primario" onclick="salvarNovaTransacao()">Salvar Transação</button>
     </div>
   </div>
 </div>
@@ -1017,12 +1125,12 @@
    Substitua pelos dados do SEU projeto Firebase (Console > Configurações do projeto)
 ========================================================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyDAeAUQUEi1QcrZ6Sr8j3D7oa6Yj6F58PI",
-  authDomain: "aura-new-odonto.firebaseapp.com",
-  projectId: "aura-new-odonto",
-  storageBucket: "aura-new-odonto.firebasestorage.app",
-  messagingSenderId: "783262430018",
-  appId: "1:783262430018:web:0c7ed7043832d141eccedb"
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_PROJETO.firebaseapp.com",
+  projectId: "SEU_PROJETO",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId: "SEU_APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -1351,6 +1459,7 @@ function aplicarPermissoesNaInterface(){
   document.getElementById('aviso-financeiro-restrito').style.display = financeiroCompleto ? 'none' : 'block';
   document.querySelectorAll('.col-financeiro-completo').forEach(el => el.style.display = financeiroCompleto ? 'table-cell' : 'none');
   document.querySelectorAll('.col-financeiro-receber').forEach(el => el.style.display = financeiroCompleto ? 'none' : 'table-cell');
+  document.getElementById('painel-resumo-financeiro').style.display = financeiroCompleto ? 'block' : 'none';
 
   renderizarFinanceiro();
 }
@@ -1515,12 +1624,64 @@ function formatarMoeda(valor){
   return (valor || 0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
 }
 
+function renderizarDashboard(){
+  const hoje = new Date();
+  const hojeISO = formatarDataISO(hoje);
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+
+  const pertenceAoMesAtual = (dataBR) => {
+    const d = parseDataBRParaDate(dataBR);
+    if(!d) return false;
+    return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+  };
+
+  // Consultas hoje / no mês
+  document.getElementById('kpi-consultas-hoje').innerText = agendamentos.filter(a => a.data === hojeISO).length;
+  document.getElementById('kpi-consultas-mes').innerText = agendamentos.filter(a => {
+    const [ano, mes] = (a.data || '').split('-').map(Number);
+    return ano === anoAtual && (mes - 1) === mesAtual;
+  }).length;
+
+  // Orçamentos pendentes (ainda não viraram contrato) / fechados no mês (contrato gerado)
+  document.getElementById('kpi-orcamentos-pendentes').innerText = orcamentos.filter(o => !o.contratoGeradoId).length;
+  document.getElementById('kpi-orcamentos-fechados-mes').innerText = orcamentos.filter(o => {
+    if(!o.contratoGeradoId) return false;
+    const c = contratos.find(ct => ct.id === o.contratoGeradoId);
+    if(!c || !c.criadoEm || !c.criadoEm.toDate) return false;
+    const d = c.criadoEm.toDate();
+    return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+  }).length;
+
+  // Receita do mês (valor efetivamente recebido) e receita a receber (ainda em aberto) — só transações do mês
+  const financeiroDoMes = financeiro.filter(f => pertenceAoMesAtual(f.dataVencimento));
+  const receitaRecebidaMes = financeiroDoMes.filter(f => f.tipo === 'receita').reduce((s, f) => s + (f.valorRecebido || 0), 0);
+  const receitaAReceberMes = financeiroDoMes.filter(f => f.tipo === 'receita').reduce((s, f) => s + Math.max((f.valor || 0) - (f.valorRecebido || 0), 0), 0);
+  const saidasMes = financeiroDoMes.filter(f => f.tipo === 'despesa').reduce((s, f) => s + (f.valorRecebido || f.valor || 0), 0);
+
+  document.getElementById('kpi-receita-mes').innerText = formatarMoeda(receitaRecebidaMes);
+  document.getElementById('kpi-receita-a-receber').innerText = formatarMoeda(receitaAReceberMes);
+  document.getElementById('kpi-saidas-mes').innerText = formatarMoeda(saidasMes);
+  const saldoMes = receitaRecebidaMes - saidasMes;
+  const elSaldoMes = document.getElementById('kpi-saldo-mes');
+  elSaldoMes.innerText = formatarMoeda(saldoMes);
+  elSaldoMes.style.color = saldoMes >= 0 ? 'var(--success, #1a9c5c)' : 'var(--danger)';
+
+  // Novos pacientes no mês (usa criadoEm, timestamp do Firestore)
+  document.getElementById('kpi-novos-pacientes-mes').innerText = pacientes.filter(p => {
+    if(!p.criadoEm || !p.criadoEm.toDate) return false;
+    const d = p.criadoEm.toDate();
+    return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+  }).length;
+}
+
 function renderizarTudo(){
   renderizarPacientes();
   renderizarPacientesNoSelect();
   renderizarOrcamentos();
   renderizarContratos();
   renderizarFinanceiro();
+  renderizarDashboard();
   renderizarProfissionais();
   renderizarProcedimentos();
   renderizarUsuarios();
@@ -1584,11 +1745,23 @@ function abrirProntuarioPaciente(pacienteId){
   // Aba 1: Dados Pessoais
   document.getElementById('prontuario-view-nome').value = paciente.nome || '';
   document.getElementById('prontuario-view-telefone').value = paciente.telefone || '';
-  document.getElementById('prontuario-view-cpf').value = paciente.cpf || '-';
-  document.getElementById('prontuario-view-nascimento').value = paciente.dataNascimento || '-';
-  document.getElementById('prontuario-view-email').value = paciente.email || '-';
-  document.getElementById('prontuario-view-origem').value = paciente.origemLead || '-';
-  document.getElementById('prontuario-view-etapa').value = paciente.etapaFunil || '-';
+  document.getElementById('prontuario-view-cpf').value = paciente.cpf || '';
+  document.getElementById('prontuario-view-nascimento').value = paciente.dataNascimento || '';
+  document.getElementById('prontuario-view-email').value = paciente.email || '';
+  document.getElementById('prontuario-view-origem').value = paciente.origemLead || '';
+  document.getElementById('prontuario-view-etapa').value = paciente.etapaFunil || '';
+  document.getElementById('prontuario-view-cep').value = paciente.cep || '';
+  document.getElementById('prontuario-view-endereco').value = paciente.endereco || '';
+  document.getElementById('prontuario-view-numero').value = paciente.numero || '';
+  document.getElementById('prontuario-view-complemento').value = paciente.complemento || '';
+  document.getElementById('prontuario-view-bairro').value = paciente.bairro || '';
+  document.getElementById('prontuario-view-cidade').value = paciente.cidade || '';
+  document.getElementById('prontuario-view-estado').value = paciente.estado || '';
+
+  // sempre reabre em modo leitura
+  document.getElementById('btn-editar-prontuario').style.display = 'inline-block';
+  document.getElementById('btn-salvar-prontuario').style.display = 'none';
+  document.querySelectorAll('#aba-dados-pessoais input').forEach(el => el.disabled = true);
 
   // Aba 2: Orçamentos do paciente
   const orcamentosDoPaciente = orcamentos.filter(o => o.pacienteId === pacienteId);
@@ -1689,6 +1862,63 @@ async function receberParcelaOrcamentoNoProntuario(orcamentoId, numeroParcela){
     abrirModalReceberPagamento(refNovaTransacao.id);
   } catch(erro){
     console.error('Erro ao criar transação da parcela:', erro);
+    mostrarToast('Erro ao salvar no banco de dados.');
+  }
+}
+
+/* ===== edição completa do prontuário (dados pessoais + endereço) ===== */
+function ativarEdicaoProntuario(){
+  document.querySelectorAll('#aba-dados-pessoais input').forEach(el => el.disabled = false);
+  document.getElementById('btn-editar-prontuario').style.display = 'none';
+  document.getElementById('btn-salvar-prontuario').style.display = 'inline-block';
+}
+
+async function buscarEnderecoPorCep(){
+  const cepInput = document.getElementById('prontuario-view-cep');
+  const cep = cepInput.value.replace(/\D/g, '');
+  if(cep.length !== 8) return;
+
+  try{
+    const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const dados = await resposta.json();
+    if(dados.erro){ mostrarToast('CEP não encontrado.'); return; }
+
+    document.getElementById('prontuario-view-endereco').value = dados.logradouro || '';
+    document.getElementById('prontuario-view-bairro').value = dados.bairro || '';
+    document.getElementById('prontuario-view-cidade').value = dados.localidade || '';
+    document.getElementById('prontuario-view-estado').value = dados.uf || '';
+  } catch(erro){
+    console.error('Erro ao buscar CEP:', erro);
+    mostrarToast('Não foi possível buscar o CEP agora.');
+  }
+}
+
+async function salvarEdicaoProntuario(){
+  if(!pacienteProntuarioAtualId) return;
+
+  try{
+    await db.collection('pacientes').doc(pacienteProntuarioAtualId).update({
+      nome: document.getElementById('prontuario-view-nome').value,
+      telefone: document.getElementById('prontuario-view-telefone').value,
+      cpf: document.getElementById('prontuario-view-cpf').value,
+      dataNascimento: document.getElementById('prontuario-view-nascimento').value,
+      email: document.getElementById('prontuario-view-email').value,
+      origemLead: document.getElementById('prontuario-view-origem').value,
+      etapaFunil: document.getElementById('prontuario-view-etapa').value,
+      cep: document.getElementById('prontuario-view-cep').value,
+      endereco: document.getElementById('prontuario-view-endereco').value,
+      numero: document.getElementById('prontuario-view-numero').value,
+      complemento: document.getElementById('prontuario-view-complemento').value,
+      bairro: document.getElementById('prontuario-view-bairro').value,
+      cidade: document.getElementById('prontuario-view-cidade').value,
+      estado: document.getElementById('prontuario-view-estado').value
+    });
+    mostrarToast('Prontuário atualizado com sucesso.');
+    document.querySelectorAll('#aba-dados-pessoais input').forEach(el => el.disabled = true);
+    document.getElementById('btn-editar-prontuario').style.display = 'inline-block';
+    document.getElementById('btn-salvar-prontuario').style.display = 'none';
+  } catch(erro){
+    console.error('Erro ao salvar prontuário:', erro);
     mostrarToast('Erro ao salvar no banco de dados.');
   }
 }
@@ -2268,7 +2498,9 @@ function montarHtmlImpressaoContrato(contrato, paciente){
         h1{ font-size:18px; border-bottom:1px solid #ccc; padding-bottom:10px; }
         .meta{ color:#666; font-size:12px; margin-bottom:24px; }
         .assinaturas{ display:flex; justify-content:space-between; margin-top:60px; }
-        .assinaturas div{ width:45%; border-top:1px solid #333; text-align:center; padding-top:6px; font-size:12px; }
+        .assinaturas div{ width:45%; text-align:center; padding-top:6px; font-size:12px; }
+        .assinaturas .linha-assinatura{ border-top:1px solid #333; padding-top:6px; }
+        .assinaturas img{ max-width:100%; max-height:80px; display:block; margin:0 auto; }
       </style>
     </head>
     <body>
@@ -2276,8 +2508,14 @@ function montarHtmlImpressaoContrato(contrato, paciente){
       <div class="meta">Paciente: ${paciente ? paciente.nome : '-'} · Gerado em ${dataGeracao} · Status: ${contrato.status}</div>
       <div>${contrato.conteudoFinal}</div>
       <div class="assinaturas">
-        <div>Assinatura do Paciente</div>
-        <div>Assinatura do Profissional</div>
+        <div>
+          ${contrato.assinaturaPacienteImg ? `<img src="${contrato.assinaturaPacienteImg}">` : ''}
+          <div class="linha-assinatura">Assinatura do Paciente</div>
+        </div>
+        <div>
+          ${contrato.assinaturaProfissionalImg ? `<img src="${contrato.assinaturaProfissionalImg}">` : ''}
+          <div class="linha-assinatura">Assinatura do Profissional</div>
+        </div>
       </div>
     </body>
     </html>`;
@@ -2288,7 +2526,23 @@ function visualizarContrato(contratoId){
   const paciente = pacientes.find(p => p.id === contrato.pacienteId);
 
   document.getElementById('visualizar-contrato-titulo').innerText = `Contrato — ${paciente ? paciente.nome : ''}`;
-  document.getElementById('visualizar-contrato-conteudo').innerHTML = contrato.conteudoFinal;
+
+  let htmlAssinaturas = '';
+  if(contrato.assinaturaPacienteImg || contrato.assinaturaProfissionalImg){
+    htmlAssinaturas = `
+      <div style="display:flex;justify-content:space-between;margin-top:40px;">
+        <div style="width:45%;text-align:center;">
+          ${contrato.assinaturaPacienteImg ? `<img src="${contrato.assinaturaPacienteImg}" style="max-width:100%;max-height:80px;">` : ''}
+          <div style="border-top:1px solid #333;padding-top:6px;font-size:12px;margin-top:4px;">Assinatura do Paciente</div>
+        </div>
+        <div style="width:45%;text-align:center;">
+          ${contrato.assinaturaProfissionalImg ? `<img src="${contrato.assinaturaProfissionalImg}" style="max-width:100%;max-height:80px;">` : ''}
+          <div style="border-top:1px solid #333;padding-top:6px;font-size:12px;margin-top:4px;">Assinatura do Profissional</div>
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('visualizar-contrato-conteudo').innerHTML = contrato.conteudoFinal + htmlAssinaturas;
   contratoEmVisualizacaoId = contratoId;
   abrirModal('modal-visualizar-contrato');
 }
@@ -2561,7 +2815,8 @@ function renderizarColunasAgenda(){
     }).join('');
 
     return `<div class="coluna-profissional">
-      <div class="coluna-profissional-cabecalho">
+      <div class="coluna-profissional-cabecalho" style="position:relative;">
+        <span title="Imprimir agenda do dia" onclick="imprimirAgendaProfissionalDia('${prof.id}')" style="position:absolute; top:-6px; right:0; cursor:pointer; font-size:13px; opacity:0.7;">🖨️</span>
         <div class="avatar-iniciais" style="background:${prof.cor}">${iniciais}</div>
         <div>
           <b>${prof.nome}</b>
@@ -2571,6 +2826,108 @@ function renderizarColunasAgenda(){
       <div class="slots-container">${htmlItens}</div>
     </div>`;
   }).join('');
+}
+
+/* ===== impressão da agenda do dia ===== */
+function imprimirAgendaDiaCompleta(){
+  const dataISO = formatarDataISO(dataSelecionadaAgenda);
+  const dataFormatada = dataSelecionadaAgenda.toLocaleDateString('pt-BR');
+  const selecionados = profissionais.filter(p => profissionaisSelecionadosIds.includes(p.id));
+
+  const blocos = selecionados.map(prof => {
+    const agendamentosDoDia = agendamentos
+      .filter(a => a.profissionalId === prof.id && a.data === dataISO)
+      .sort((a,b) => a.horaInicio.localeCompare(b.horaInicio));
+    const linhas = agendamentosDoDia.map(a => `
+      <tr>
+        <td>${a.horaInicio} — ${a.horaFim}</td>
+        <td>${a.pacienteNome}</td>
+        <td>${(a.tipo || '').toUpperCase()}</td>
+        <td>${STATUS_AGENDAMENTO[a.status || 'agendado'].label}</td>
+      </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#666;">Nenhum agendamento neste dia.</td></tr>';
+    return `
+      <h2>${prof.nome} <small style="font-weight:normal;color:#666;">${prof.especialidade}</small></h2>
+      <table>
+        <thead><tr><th>Horário</th><th>Paciente</th><th>Tipo</th><th>Status</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>`;
+  }).join('<div style="height:20px;"></div>');
+
+  const html = `
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Agenda do dia — ${dataFormatada}</title>
+      <style>
+        body{ font-family: Arial, sans-serif; color:#1a1a1a; padding:32px; }
+        h1{ font-size:18px; margin-bottom:2px; }
+        h2{ font-size:14px; margin:18px 0 6px; }
+        .meta{ color:#666; font-size:12px; margin-bottom:20px; }
+        table{ width:100%; border-collapse:collapse; }
+        th, td{ border:1px solid #ccc; padding:8px; font-size:13px; text-align:left; }
+        th{ background:#f2f2f2; }
+      </style>
+    </head>
+    <body>
+      <h1>Agenda do dia</h1>
+      <div class="meta">${dataFormatada}</div>
+      ${blocos || '<p>Nenhum profissional selecionado.</p>'}
+    </body>
+    </html>`;
+
+  const janela = window.open('', '_blank');
+  janela.document.write(html);
+  janela.document.close();
+  janela.focus();
+  setTimeout(() => janela.print(), 300);
+}
+
+function imprimirAgendaProfissionalDia(profissionalId){
+  const prof = profissionais.find(p => p.id === profissionalId);
+  const dataISO = formatarDataISO(dataSelecionadaAgenda);
+  const dataFormatada = dataSelecionadaAgenda.toLocaleDateString('pt-BR');
+
+  const agendamentosDoDia = agendamentos
+    .filter(a => a.profissionalId === profissionalId && a.data === dataISO)
+    .sort((a,b) => a.horaInicio.localeCompare(b.horaInicio));
+
+  const linhas = agendamentosDoDia.map(a => `
+    <tr>
+      <td>${a.horaInicio} — ${a.horaFim}</td>
+      <td>${a.pacienteNome}</td>
+      <td>${(a.tipo || '').toUpperCase()}</td>
+      <td>${STATUS_AGENDAMENTO[a.status || 'agendado'].label}</td>
+    </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#666;">Nenhum agendamento neste dia.</td></tr>';
+
+  const html = `
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Agenda — ${prof ? prof.nome : ''} — ${dataFormatada}</title>
+      <style>
+        body{ font-family: Arial, sans-serif; color:#1a1a1a; padding:32px; }
+        h1{ font-size:18px; margin-bottom:2px; }
+        .meta{ color:#666; font-size:12px; margin-bottom:20px; }
+        table{ width:100%; border-collapse:collapse; }
+        th, td{ border:1px solid #ccc; padding:8px; font-size:13px; text-align:left; }
+        th{ background:#f2f2f2; }
+      </style>
+    </head>
+    <body>
+      <h1>Agenda — ${prof ? prof.nome : ''}</h1>
+      <div class="meta">${prof ? prof.especialidade : ''} · ${dataFormatada}</div>
+      <table>
+        <thead><tr><th>Horário</th><th>Paciente</th><th>Tipo</th><th>Status</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>
+    </body>
+    </html>`;
+
+  const janela = window.open('', '_blank');
+  janela.document.write(html);
+  janela.document.close();
+  janela.focus();
+  setTimeout(() => janela.print(), 300);
 }
 
 /* ===== modal de marcar agendamento (criação e edição) ===== */
@@ -2981,19 +3338,155 @@ async function excluirPagamento(id){
   }
 }
 
+/* ===== Nova Transação (lançamento avulso: entrada ou saída) ===== */
+function abrirModalNovaTransacao(){
+  document.getElementById('nt-tipo').value = 'receita';
+  document.getElementById('nt-categoria').value = '';
+  document.getElementById('nt-valor').value = '';
+  document.getElementById('nt-data').value = formatarDataISO(new Date());
+  document.getElementById('nt-observacao').value = '';
+  document.getElementById('nt-destino-fornecedor').value = '';
+  document.getElementById('nt-paciente-novo-nome').value = '';
+  document.getElementById('nt-paciente-novo-telefone').value = '';
+
+  const select = document.getElementById('nt-paciente-select');
+  select.innerHTML = '<option value="">— Selecionar paciente cadastrado —</option>'
+    + '<option value="__novo__">+ Cadastrar paciente na hora</option>'
+    + pacientes.map(p => `<option value="${p.id}">${p.nome}</option>`).join('');
+  select.value = '';
+  document.getElementById('nt-bloco-paciente-novo').style.display = 'none';
+
+  alternarTipoNovaTransacao();
+  abrirModal('modal-nova-transacao');
+}
+
+function alternarTipoNovaTransacao(){
+  const tipo = document.getElementById('nt-tipo').value;
+  document.getElementById('nt-bloco-entrada').style.display = tipo === 'receita' ? 'block' : 'none';
+  document.getElementById('nt-bloco-saida').style.display = tipo === 'despesa' ? 'block' : 'none';
+}
+
+function alternarPacienteNovoNaTransacao(){
+  const valor = document.getElementById('nt-paciente-select').value;
+  document.getElementById('nt-bloco-paciente-novo').style.display = valor === '__novo__' ? 'block' : 'none';
+}
+
+async function salvarNovaTransacao(){
+  const tipo = document.getElementById('nt-tipo').value;
+  const categoria = document.getElementById('nt-categoria').value;
+  const valor = parseFloat(document.getElementById('nt-valor').value) || 0;
+  const data = document.getElementById('nt-data').value;
+  const observacao = document.getElementById('nt-observacao').value;
+
+  if(!categoria){ mostrarToast('Informe a categoria/descrição da transação.'); return; }
+  if(valor <= 0){ mostrarToast('Informe um valor válido.'); return; }
+  if(!data){ mostrarToast('Informe a data da transação.'); return; }
+
+  try{
+    let pacienteId = null;
+
+    if(tipo === 'receita'){
+      const selecaoPaciente = document.getElementById('nt-paciente-select').value;
+      if(selecaoPaciente === '__novo__'){
+        const nomeNovo = document.getElementById('nt-paciente-novo-nome').value;
+        if(!nomeNovo){ mostrarToast('Informe o nome do novo paciente.'); return; }
+        const refNovoPaciente = await db.collection('pacientes').add({
+          nome: nomeNovo,
+          telefone: document.getElementById('nt-paciente-novo-telefone').value,
+          etapaFunil: 'lead',
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        pacienteId = refNovoPaciente.id;
+      } else if(selecaoPaciente){
+        pacienteId = selecaoPaciente;
+      }
+    }
+
+    const destinoFornecedor = tipo === 'despesa' ? document.getElementById('nt-destino-fornecedor').value : null;
+
+    await db.collection('financeiro').add({
+      dataVencimento: formatarDataBR(data),
+      categoria,
+      tipo,
+      valor,
+      valorRecebido: tipo === 'receita' ? 0 : valor,
+      status: tipo === 'receita' ? 'pendente' : 'pago',
+      pacienteId,
+      destinoFornecedor,
+      observacao,
+      lancamentoAvulso: true,
+      recebimentos: tipo === 'despesa' ? [{ valor, formaPagamento: '-', recebidoPor: usuarioAtual ? usuarioAtual.nome : null, data: firebase.firestore.FieldValue.serverTimestamp() }] : []
+    });
+
+    mostrarToast('Transação registrada com sucesso.');
+    fecharModal('modal-nova-transacao');
+  } catch(erro){
+    console.error('Erro ao salvar transação:', erro);
+    mostrarToast('Erro ao salvar no banco de dados.');
+  }
+}
+
+function parseDataBRParaDate(dataBR){
+  if(!dataBR || typeof dataBR !== 'string') return null;
+  const partes = dataBR.split('/');
+  if(partes.length !== 3) return null;
+  const [dia, mes, ano] = partes;
+  return new Date(`${ano}-${mes}-${dia}T00:00:00`);
+}
+
 function renderizarFinanceiro(){
   const tabela = document.getElementById('tabela-financeiro');
   const financeiroCompleto = usuarioAtual ? PERMISSOES[usuarioAtual.nivel].financeiroCompleto : true;
   const podeEditarExcluirPago = usuarioAtual ? PERMISSOES[usuarioAtual.nivel].financeiroEditarExcluir : false;
 
-  // Recepcionista/Comercial/Secretária só veem receitas (recebimentos), nunca despesas/contas a pagar
-  const linhasVisiveis = financeiroCompleto ? financeiro : financeiro.filter(f => f.tipo === 'receita');
+  // define período padrão (mês atual) na primeira renderização
+  const inputInicio = document.getElementById('financeiro-filtro-data-inicio');
+  const inputFim = document.getElementById('financeiro-filtro-data-fim');
+  if(inputInicio && !inputInicio.value){
+    const hoje = new Date();
+    const primeiroDiaDoMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    inputInicio.value = formatarDataISO(primeiroDiaDoMes);
+    inputFim.value = formatarDataISO(hoje);
+  }
 
-  if(linhasVisiveis.length === 0){ tabela.innerHTML = '<tr><td colspan="8">Nenhuma transação registrada.</td></tr>'; return; }
+  // Recepcionista/Comercial/Secretária só veem receitas (recebimentos), nunca despesas/contas a pagar
+  let linhasVisiveis = financeiroCompleto ? financeiro : financeiro.filter(f => f.tipo === 'receita');
+
+  // filtro por período (se os campos de filtro existirem, ex: painel completo visível)
+  if(inputInicio && inputInicio.value && inputFim && inputFim.value){
+    const dataInicioFiltro = new Date(inputInicio.value + 'T00:00:00');
+    const dataFimFiltro = new Date(inputFim.value + 'T23:59:59');
+    linhasVisiveis = linhasVisiveis.filter(f => {
+      const dataLancamento = parseDataBRParaDate(f.dataVencimento);
+      if(!dataLancamento) return true; // ex: "Imediato (cartão)" — mantém visível
+      return dataLancamento >= dataInicioFiltro && dataLancamento <= dataFimFiltro;
+    });
+  }
+
+  // filtro por tipo (entradas/saídas/ambos)
+  const filtroTipoEl = document.getElementById('financeiro-filtro-tipo');
+  const filtroTipo = filtroTipoEl ? filtroTipoEl.value : 'ambos';
+  const linhasFiltradasPorTipo = filtroTipo === 'ambos' ? linhasVisiveis : linhasVisiveis.filter(f => f.tipo === filtroTipo);
+
+  // resumo tipo DRE (sempre soma o período completo — entradas e saídas — independente do filtro de exibição da tabela)
+  const totalEntradas = linhasVisiveis.filter(f => f.tipo === 'receita').reduce((soma, f) => soma + (f.valorRecebido || 0), 0);
+  const totalSaidas = linhasVisiveis.filter(f => f.tipo === 'despesa').reduce((soma, f) => soma + (f.valorRecebido || f.valor || 0), 0);
+  const elEntradas = document.getElementById('resumo-total-entradas');
+  const elSaidas = document.getElementById('resumo-total-saidas');
+  const elSaldo = document.getElementById('resumo-saldo-periodo');
+  if(elEntradas){
+    elEntradas.innerText = formatarMoeda(totalEntradas);
+    elSaidas.innerText = formatarMoeda(totalSaidas);
+    const saldo = totalEntradas - totalSaidas;
+    elSaldo.innerText = formatarMoeda(saldo);
+    elSaldo.style.color = saldo >= 0 ? 'var(--success, #1a9c5c)' : 'var(--danger)';
+  }
+
+  if(linhasFiltradasPorTipo.length === 0){ tabela.innerHTML = '<tr><td colspan="8">Nenhuma transação registrada neste período.</td></tr>'; return; }
 
   const badgeStatus = { pago:'badge-verde', parcial:'badge-amarelo', pendente:'badge-cinza' };
 
-  tabela.innerHTML = linhasVisiveis.map((f) => {
+  tabela.innerHTML = linhasFiltradasPorTipo.map((f) => {
     const restante = Math.max(f.valor - (f.valorRecebido || 0), 0);
     const responsaveis = (f.recebimentos && f.recebimentos.length > 0)
       ? [...new Set(f.recebimentos.map(r => r.recebidoPor))].join(', ')
