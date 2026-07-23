@@ -300,7 +300,6 @@
         <div class="nav-item" data-secao="pacientes" data-permissao="pacientes">🧑‍🤝‍🧑 Pacientes</div>
         <div class="nav-item" data-secao="orcamentos" data-permissao="orcamentos">🧾 Orçamentos</div>
         <div class="nav-item" data-secao="contratos" data-permissao="contratos">📄 Contratos</div>
-        <div class="nav-item" data-secao="prontuarios" data-permissao="prontuarios">🦷 Prontuários</div>
         <div class="nav-item" data-secao="financeiro" data-permissao="financeiro">💰 Financeiro</div>
         <div class="nav-item" data-secao="usuarios" data-permissao="gerenciarUsuarios">👤 Usuários</div>
         <div class="nav-item" data-secao="procedimentos" data-permissao="gerenciarCadastros">🛠️ Procedimentos</div>
@@ -434,13 +433,6 @@
       </div>
 
       <!-- PRONTUÁRIOS -->
-      <div class="secao" id="secao-prontuarios">
-        <div class="cabecalho-secao">
-          <div><h2>Prontuários</h2><p>Histórico clínico por paciente</p></div>
-        </div>
-        <div class="painel"><p style="color:var(--text-1);">Selecione um paciente para ver o prontuário e odontograma (módulo a implementar).</p></div>
-      </div>
-
       <!-- FINANCEIRO -->
       <div class="secao" id="secao-financeiro">
         <div class="cabecalho-secao">
@@ -1162,11 +1154,11 @@ let mesExibidoMiniCalendario = new Date(dataSelecionadaAgenda.getFullYear(), dat
 let profissionaisSelecionadosIds = [];
 
 const PERMISSOES = {
-  master:              { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, prontuarios:true, financeiro:true, financeiroCompleto:true, configuracoes:true, financeiroEditarExcluir:true, gerenciarUsuarios:true, gerenciarCadastros:true },
-  administrador:       { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, prontuarios:true, financeiro:true, financeiroCompleto:true, configuracoes:true, financeiroEditarExcluir:false, gerenciarUsuarios:true, gerenciarCadastros:true },
-  comercial:           { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, prontuarios:false, financeiro:true, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false },
-  secretaria:          { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, prontuarios:false, financeiro:true, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false },
-  profissional_saude:  { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, prontuarios:true, financeiro:false, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false }
+  master:              { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:true, configuracoes:true, financeiroEditarExcluir:true, gerenciarUsuarios:true, gerenciarCadastros:true },
+  administrador:       { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:true, configuracoes:true, financeiroEditarExcluir:false, gerenciarUsuarios:true, gerenciarCadastros:true },
+  comercial:           { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false },
+  secretaria:          { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:true, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false },
+  profissional_saude:  { dashboard:true, agenda:true, pacientes:true, orcamentos:true, contratos:true, financeiro:false, financeiroCompleto:false, configuracoes:false, financeiroEditarExcluir:false, gerenciarUsuarios:false, gerenciarCadastros:false }
 };
 
 const NOMES_NIVEL = {
@@ -3415,7 +3407,7 @@ async function salvarNovaTransacao(){
       destinoFornecedor,
       observacao,
       lancamentoAvulso: true,
-      recebimentos: tipo === 'despesa' ? [{ valor, formaPagamento: '-', recebidoPor: usuarioAtual ? usuarioAtual.nome : null, data: firebase.firestore.FieldValue.serverTimestamp() }] : []
+      recebimentos: tipo === 'despesa' ? [{ valor, formaPagamento: '-', recebidoPor: usuarioAtual ? usuarioAtual.nome : null, data: new Date().toISOString() }] : []
     });
 
     mostrarToast('Transação registrada com sucesso.');
